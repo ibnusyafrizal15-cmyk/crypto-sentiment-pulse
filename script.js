@@ -50,11 +50,20 @@
       </div>`;
   }
 
-  // ── Escape HTML ──
+  // ── Escape HTML (untuk render DOM aman) ──
   function escapeHTML(str) {
+    if (!str) return '';
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // ── Decode HTML Entities (jika ada string yang ter-encode) ──
+  function decodeHTML(str) {
+    if (!str) return '';
+    const txt = document.createElement('textarea');
+    txt.innerHTML = str;
+    return txt.value;
   }
 
   // ── Sentiment Badge Class ──
@@ -69,7 +78,7 @@
   function renderCards() {
     const filtered = activeFilter === 'Semua'
       ? newsData
-      : newsData.filter(item => item.coin === activeFilter || (activeFilter === 'Semua'));
+      : newsData.filter(item => item.coin === activeFilter);
 
     if (filtered.length === 0) {
       renderEmpty();
@@ -89,7 +98,7 @@
               <span class="badge ${badgeClass}">${escapeHTML(item.sentiment)}</span>
               <span class="badge badge-coin">${escapeHTML(coinLabel)}</span>
             </div>
-            <button class="btn-copy" type="button" data-summary="${escapeHTML(item.summary)}" aria-label="Salin ringkasan">
+            <button class="btn-copy" type="button" data-id="${item.id}" aria-label="Salin ringkasan berita">
               Salin Ringkasan
             </button>
           </div>
@@ -105,20 +114,42 @@
 
     grid.innerHTML = html;
 
-    // Attach copy listeners
+    // Pasang event listener tombol salin
     grid.querySelectorAll('.btn-copy').forEach(btn => {
       btn.addEventListener('click', handleCopy);
     });
   }
 
-  // ── Copy to Clipboard ──
+  // ── Copy to Clipboard (Membaca langsung dari state newsData tanpa escape HTML) ──
   async function handleCopy(e) {
     const btn = e.currentTarget;
-    const summary = btn.getAttribute('data-summary');
-    if (!summary) return;
+    const articleId = parseInt(btn.getAttribute('data-id'), 10);
+
+    // Ambil summary asli murni langsung dari array state
+    const matchedArticle = newsData.find(item => item.id === articleId);
+    let summaryText = matchedArticle ? matchedArticle.summary : '';
+
+    // Pastikan karakter HTML entities seperti &quot;, &#39;, &amp; didecode jika ada
+    summaryText = decodeHTML(summaryText);
+
+    if (!summaryText) return;
 
     try {
-      await navigator.clipboard.writeText(summary);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(summaryText);
+      } else {
+        // Fallback untuk context browser non-HTTPS
+        const ta = document.createElement('textarea');
+        ta.value = summaryText;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      // Feedback visual
       btn.textContent = 'Tersalin! ✓';
       btn.classList.add('copied');
 
@@ -126,23 +157,8 @@
         btn.textContent = 'Salin Ringkasan';
         btn.classList.remove('copied');
       }, 1500);
-    } catch {
-      // Fallback for non-secure contexts
-      const ta = document.createElement('textarea');
-      ta.value = summary;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-
-      btn.textContent = 'Tersalin! ✓';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = 'Salin Ringkasan';
-        btn.classList.remove('copied');
-      }, 1500);
+    } catch (err) {
+      console.error('[Copy Error]', err);
     }
   }
 
@@ -153,13 +169,12 @@
 
     try {
       const res = await fetch('/api/analyze');
-
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody.error || `Server responded with ${res.status}`);
-      }
-
       const data = await res.json();
+
+      // Cek jika server mengembalikan pesan error
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
 
       if (!Array.isArray(data) || data.length === 0) {
         throw new Error('Data berita kosong atau tidak valid dari server.');
@@ -178,7 +193,6 @@
   // ── Filter Tabs ──
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Update active state
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
