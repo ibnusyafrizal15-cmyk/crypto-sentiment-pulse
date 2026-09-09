@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0A0B0E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,7 +20,7 @@
         <h1 class="app-title">Crypto Sentiment Pulse</h1>
         <span class="live-indicator">
           <span class="pulse-dot" aria-hidden="true"></span>
-          Live Feed: CoinDesk
+          Live Feed: CoinDesk (25 Berita)
         </span>
       </div>
       <button id="btn-refresh" class="btn-refresh" type="button" aria-label="Refresh feed">
@@ -33,12 +33,51 @@
       </button>
     </header>
 
+    <!-- Market Pulse Barometer -->
+    <section id="market-pulse-bar" class="market-pulse-bar" aria-label="Barometer Sentimen Pasar">
+      <div class="pulse-bar-header">
+        <div class="pulse-status-wrap">
+          <span class="pulse-eyebrow">BAROMETER PASAR</span>
+          <span id="market-status-text" class="market-status-text">Memuat analisis sentimen...</span>
+        </div>
+        <div class="pulse-meta-badge">
+          <span id="total-articles-count" class="meta-count">0 Berita Dianalisis</span>
+        </div>
+      </div>
+
+      <!-- Segmented Visual Bar -->
+      <div class="pulse-progress-track" role="progressbar" aria-label="Rasio Sentimen Pasar">
+        <div id="bar-bullish" class="progress-segment seg-bullish" style="width: 33.3%"></div>
+        <div id="bar-neutral" class="progress-segment seg-neutral" style="width: 33.3%"></div>
+        <div id="bar-bearish" class="progress-segment seg-bearish" style="width: 33.4%"></div>
+      </div>
+
+      <!-- Legend & Stats -->
+      <div class="pulse-legend">
+        <div class="legend-item">
+          <span class="legend-dot dot-bullish"></span>
+          <span class="legend-name">Bullish</span>
+          <strong id="pct-bullish" class="legend-pct">0%</strong>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot dot-neutral"></span>
+          <span class="legend-name">Neutral</span>
+          <strong id="pct-neutral" class="legend-pct">0%</strong>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot dot-bearish"></span>
+          <span class="legend-name">Bearish</span>
+          <strong id="pct-bearish" class="legend-pct">0%</strong>
+        </div>
+      </div>
+    </section>
+
     <!-- Filter Bar -->
     <nav class="filter-bar" aria-label="Filter berita berdasarkan koin">
       <button class="filter-btn active" data-filter="Semua" type="button">Semua</button>
-      <button class="filter-btn" data-filter="BTC" type="button">Bitcoin <span class="ticker">$BTC</span></button>
-      <button class="filter-btn" data-filter="ETH" type="button">Ethereum <span class="ticker">$ETH</span></button>
-      <button class="filter-btn" data-filter="SOL" type="button">Solana <span class="ticker">$SOL</span></button>
+      <button class="filter-btn filter-btc" data-filter="BTC" type="button">Bitcoin <span class="ticker">$BTC</span></button>
+      <button class="filter-btn filter-eth" data-filter="ETH" type="button">Ethereum <span class="ticker">$ETH</span></button>
+      <button class="filter-btn filter-sol" data-filter="SOL" type="button">Solana <span class="ticker">$SOL</span></button>
     </nav>
 
     <!-- Card Grid -->
@@ -48,7 +87,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      Crypto Sentiment Pulse &middot; Powered by Gemini AI &amp; CoinDesk RSS
+      Crypto Sentiment Pulse &middot; Powered by Gemini AI &amp; CoinDesk RSS Feed
     </footer>
 
   </div>

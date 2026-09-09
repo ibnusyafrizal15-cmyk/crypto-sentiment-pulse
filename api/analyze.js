@@ -11,7 +11,6 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Validasi GEMINI_API_KEY
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_API_KEY) {
     return res.status(200).json({
@@ -20,38 +19,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ── 1. Tarik RSS Feed CoinDesk via rss2json ──
-    const RSS_URL = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.coindesk.com/arc/outboundfeeds/rss/';
-    const rssRes = await fetch(RSS_URL);
+    // ── 1. Tarik 20-25 Berita Terbaru dari Feed CoinDesk ──
+    const articles = await fetchCoinDeskArticles();
 
-    if (!rssRes.ok) {
+    if (!articles || articles.length === 0) {
       return res.status(200).json({
-        error: `Gagal mengambil RSS feed CoinDesk: HTTP ${rssRes.status} ${rssRes.statusText}`
+        error: 'Gagal menarik feed berita dari CoinDesk.'
       });
     }
-
-    const rssData = await rssRes.json();
-    if (!rssData.items || !Array.isArray(rssData.items) || rssData.items.length === 0) {
-      return res.status(200).json({
-        error: 'RSS feed CoinDesk tidak mengembalikan artikel berita.'
-      });
-    }
-
-    // Ambil 8-10 artikel teratas (title, description, link)
-    const articles = rssData.items.slice(0, 10).map((item, idx) => ({
-      id: idx + 1,
-      title: item.title ? item.title.trim() : 'Untitled',
-      description: item.description
-        ? item.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 500)
-        : '',
-      source_url: item.link || '#'
-    }));
 
     // ── 2. System Prompt & User Prompt Gemini ──
-    const systemPrompt = "Analisis daftar berita crypto berikut. Untuk setiap berita, buat ringkasan padat 2 kalimat dalam Bahasa Indonesia, tentukan sentimen (Bullish, Bearish, atau Neutral), dan tentukan koin terkait (BTC, ETH, SOL, atau Umum). Kembalikan dalam bentuk JSON array objek dengan properti: id, title, summary, sentiment, coin, source_url.";
-    const userPrompt = `Daftar berita crypto:\n${JSON.stringify(articles, null, 2)}`;
+    const systemPrompt = `Kamu adalah analis senior pasar cryptocurrency dan jurnalis FinTech profesional.
+Tugasmu adalah menganalisis daftar berita crypto berikut secara tajam dan mendalam.
 
-    // ── 3. Panggil Gemini API (dengan model gemini-1.5-flash & fallback jika model dipensiunkan/overload) ──
+ATURAN KETAT:
+1. "title": Buat judul berita dalam Bahasa Indonesia yang tajam, akurat, dan memikat (BUKAN salinan kata per kata dari bahasa Inggris).
+2. "summary": Tulis ringkasan 1-2 kalimat padat dalam Bahasa Indonesia murni yang menjelaskan fakta kunci peristiwa.
+3. "impact": Buat analisis dampak potensial ke harga/pasar dalam 1 kalimat ringkas (contoh: "Meningkatkan likuiditas dan sentimen institusional", "Memicu tekanan jual jangka pendek", atau "Dampak terbatas pada pergerakan harga").
+4. "sentiment": Tentukan apakah berita ini "Bullish", "Bearish", atau "Neutral".
+5. "score": Berikan skor numerik sentimen dari -100 s.d +100 dengan tanda +/- (contoh: "+85", "+40", "0", "-65").
+6. "coin": Tentukan koin utama yang paling relevan: "BTC", "ETH", "SOL", atau "Umum". PENTING: Jika berita membahas Solana, SOL, atau ekosistem terkait, WAJIB tandai sebagai "SOL".
+7. "time_ago": Gunakan perkiraan waktu rilis yang telah disediakan.
+8. "source_url": Gunakan URL asli berita.
+
+Respons WAJIB berupa JSON array murni tanpa pembungkus markdown (tanpa \`\`\`json).`;
+
+    const userPrompt = `Analisis seluruh ${articles.length} berita crypto ini:\n\n${JSON.stringify(articles, null, 2)}`;
+
+    // ── 3. Panggil Gemini API (dengan model gemini-1.5-flash & fallback multi-model) ──
     const candidateModels = [
       'gemini-1.5-flash',
       'gemini-2.5-flash',
@@ -79,6 +74,8 @@ export default async function handler(req, res) {
               }
             ],
             generationConfig: {
+              temperature: 0.25,
+              maxOutputTokens: 8192,
               responseMimeType: 'application/json'
             }
           })
@@ -92,7 +89,7 @@ export default async function handler(req, res) {
 
           if (textCandidate && textCandidate.trim().length > 0) {
             geminiJsonText = textCandidate.trim();
-            break; // Berhasil mendapatkan respons JSON
+            break;
           }
         } else {
           console.warn(`[Gemini API ${model} status: ${geminiRes.status}]`);
@@ -104,9 +101,8 @@ export default async function handler(req, res) {
 
     let finalResult = [];
 
-    // Parse hasil JSON dari Gemini
+    // Parse respons JSON dari Gemini
     if (geminiJsonText) {
-      // Hilangkan codeblock markdown jika ada
       const cleaned = geminiJsonText
         .replace(/^```(?:json)?\s*/i, '')
         .replace(/\s*```$/i, '')
@@ -117,11 +113,14 @@ export default async function handler(req, res) {
         if (Array.isArray(parsed) && parsed.length > 0) {
           finalResult = parsed.map((item, idx) => ({
             id: item.id || idx + 1,
-            title: item.title || articles[idx]?.title || 'Untitled',
-            summary: item.summary || `${articles[idx]?.title || ''}. Berita perkembangan terkini pasar crypto.`,
+            title: item.title || articles[idx]?.title || 'Berita Pasar Kripto Terkini',
+            summary: item.summary || 'Perkembangan pasar cryptocurrency terbaru dan analisis sentimen.',
+            impact: item.impact || 'Menjaga dinamika pasar dalam tren konsolidasi.',
             sentiment: ['Bullish', 'Bearish', 'Neutral'].includes(item.sentiment) ? item.sentiment : 'Neutral',
-            coin: ['BTC', 'ETH', 'SOL', 'Umum'].includes(item.coin) ? item.coin : 'Umum',
-            source_url: item.source_url || articles[idx]?.source_url || '#'
+            score: formatScore(item.score, item.sentiment),
+            coin: normalizeCoin(item.coin, articles[idx]?.title, articles[idx]?.description),
+            time_ago: item.time_ago || articles[idx]?.time_ago || 'Baru saja',
+            source_url: item.source_url || articles[idx]?.link || '#'
           }));
         }
       } catch (parseErr) {
@@ -129,49 +128,187 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 4. Fallback Heuristik Tangguh jika API AI Sedang Mengalami Gangguan Global (503/Quota) ──
+    // ── 4. Fallback Heuristik Cerdas jika Gemini Mengalami Gangguan Sementara (503/Quota) ──
     if (finalResult.length === 0) {
-      console.warn('[Fallback] Mengaktifkan analisis heuristik teks karena Gemini API sedang sibuk.');
+      console.warn('[Fallback Heuristik Aktif] Menerjemahkan dan menganalisis sentimen berita langsung.');
       finalResult = articles.map((art, idx) => {
         const text = `${art.title} ${art.description}`.toLowerCase();
 
-        // Sentimen berbasis kata kunci berita
+        // Evaluasi Sentimen & Skor
         let sentiment = 'Neutral';
-        if (/surge|rally|high|gain|jump|bull|soar|record|approval|inflow|climb|boost/i.test(text)) {
+        let score = '0';
+        if (/surge|rally|record high|jump|bull|soar|approval|inflow|climb|boost|gain|outperform/i.test(text)) {
           sentiment = 'Bullish';
-        } else if (/drop|fall|plunge|crash|bear|hack|lawsuit|ban|slump|sink|down|liquidation/i.test(text)) {
+          score = '+75';
+        } else if (/drop|fall|plunge|crash|bear|hack|lawsuit|ban|slump|sink|down|liquidation|outflow/i.test(text)) {
           sentiment = 'Bearish';
+          score = '-65';
         }
 
-        // Koin terkait
+        // Deteksi Koin
         let coin = 'Umum';
-        if (/bitcoin|\$btc|\bbtc\b/i.test(text)) coin = 'BTC';
+        if (/solana|\$sol|\bsol\b|phantom|raydium|jupiter/i.test(text)) coin = 'SOL';
+        else if (/bitcoin|\$btc|\bbtc\b/i.test(text)) coin = 'BTC';
         else if (/ethereum|\$eth|\beth\b|ether/i.test(text)) coin = 'ETH';
-        else if (/solana|\$sol|\bsol\b/i.test(text)) coin = 'SOL';
 
-        // Ringkasan padat 2 kalimat
-        const cleanDesc = art.description || '';
-        const firstSentence = cleanDesc.split('.')[0]?.trim();
-        const summary = firstSentence && firstSentence.length > 20
-          ? `${art.title}. ${firstSentence}.`
-          : `${art.title}. Informasi terkini mengenai pergerakan aset kripto dan sentimen pasar global.`;
+        // Buat judul dan ringkasan bahasa Indonesia yang rapi
+        const cleanDesc = art.description ? art.description.replace(/\s+/g, ' ').trim() : '';
+        const firstSentence = cleanDesc.split('.')[0]?.trim() || '';
+
+        const title = translateHeuristicTitle(art.title);
+        const summary = firstSentence.length > 25
+          ? `${title}. ${firstSentence}.`
+          : `${title}. Laporan berita mendalam seputar pergerakan aset kripto dan dinamika regulasi terkini.`;
+
+        let impact = 'Membawa volatilitas wajar pada pergerakan harga aset terkait.';
+        if (sentiment === 'Bullish') impact = 'Berpotensi mendorong momentum beli dan inflow modal baru.';
+        else if (sentiment === 'Bearish') impact = 'Dapat memicu aksi ambil untung atau tekanan jual jangka pendek.';
 
         return {
           id: idx + 1,
-          title: art.title,
+          title,
           summary,
+          impact,
           sentiment,
+          score,
           coin,
-          source_url: art.source_url
+          time_ago: art.time_ago,
+          source_url: art.link
         };
       });
     }
 
     return res.status(200).json(finalResult);
+
   } catch (err) {
-    console.error('[/api/analyze Server Error]', err);
+    console.error('[/api/analyze Fatal Error]', err);
     return res.status(200).json({
-      error: err.message || 'Terjadi kesalahan saat memproses data analisis berita.'
+      error: err.message || 'Terjadi kesalahan internal pada server analisis berita.'
     });
   }
+}
+
+// ── Helper: Tarik 20-25 Berita dari CoinDesk ──
+async function fetchCoinDeskArticles() {
+  // Metode 1: Tarik XML langsung dari CoinDesk RSS (menyediakan 25 berita lengkap)
+  try {
+    const rssRes = await fetch('https://www.coindesk.com/arc/outboundfeeds/rss/', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+
+    if (rssRes.ok) {
+      const xml = await rssRes.text();
+      const items = [];
+      const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+      let match;
+
+      while ((match = itemRegex.exec(xml)) !== null && items.length < 25) {
+        const itemStr = match[1];
+        const tm = itemStr.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i);
+        const lm = itemStr.match(/<link>(.*?)<\/link>/i);
+        const dm = itemStr.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/i);
+        const pm = itemStr.match(/<pubDate>(.*?)<\/pubDate>/i);
+
+        const title = (tm ? (tm[1] || tm[2]) : '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+        const link = (lm ? lm[1] : '').trim();
+        let description = (dm ? (dm[1] || dm[2]) : '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim();
+        const pubDateStr = (pm ? pm[1] : '').trim();
+
+        if (title) {
+          items.push({
+            id: items.length + 1,
+            title,
+            description: description.substring(0, 400),
+            link: link || '#',
+            time_ago: calculateTimeAgo(pubDateStr)
+          });
+        }
+      }
+
+      if (items.length >= 10) {
+        return items;
+      }
+    }
+  } catch (err) {
+    console.warn('[Direct XML Fetch Warning]', err.message);
+  }
+
+  // Metode 2: Fallback ke rss2json
+  try {
+    const fallbackRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.coindesk.com/arc/outboundfeeds/rss/');
+    if (fallbackRes.ok) {
+      const data = await fallbackRes.json();
+      if (Array.isArray(data.items)) {
+        return data.items.map((it, idx) => ({
+          id: idx + 1,
+          title: it.title || 'Untitled',
+          description: (it.description || '').replace(/<[^>]*>/g, '').trim().substring(0, 400),
+          link: it.link || '#',
+          time_ago: calculateTimeAgo(it.pubDate)
+        }));
+      }
+    }
+  } catch (err2) {
+    console.warn('[rss2json Fallback Warning]', err2.message);
+  }
+
+  return [];
+}
+
+// ── Helper: Hitung Time Ago ──
+function calculateTimeAgo(pubDateStr) {
+  if (!pubDateStr) return 'Baru saja';
+  try {
+    const diffMs = Date.now() - new Date(pubDateStr).getTime();
+    if (isNaN(diffMs)) return 'Baru saja';
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Baru saja';
+    if (diffMins < 60) return `${diffMins}m lalu`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}j lalu`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}h lalu`;
+  } catch {
+    return 'Baru saja';
+  }
+}
+
+// ── Helper: Normalisasi Koin ──
+function normalizeCoin(coin, title = '', desc = '') {
+  const combined = `${coin} ${title} ${desc}`.toLowerCase();
+  if (/solana|\$sol|\bsol\b/i.test(combined)) return 'SOL';
+  if (/bitcoin|\$btc|\bbtc\b/i.test(combined)) return 'BTC';
+  if (/ethereum|\$eth|\beth\b|ether/i.test(combined)) return 'ETH';
+  if (['BTC', 'ETH', 'SOL'].includes(coin)) return coin;
+  return 'Umum';
+}
+
+// ── Helper: Format Skor ──
+function formatScore(score, sentiment) {
+  if (score !== undefined && score !== null) {
+    const str = String(score).trim();
+    if (str.startsWith('+') || str.startsWith('-')) return str;
+    const num = parseInt(str, 10);
+    if (!isNaN(num)) {
+      return num > 0 ? `+${num}` : `${num}`;
+    }
+  }
+  if (sentiment === 'Bullish') return '+70';
+  if (sentiment === 'Bearish') return '-60';
+  return '0';
+}
+
+// ── Helper: Adaptasi Judul Heuristik ──
+function translateHeuristicTitle(title) {
+  if (!title) return 'Pembaruan Berita Pasar Crypto';
+  return title
+    .replace(/\bflags\b/gi, 'Soroti')
+    .replace(/\bAML lapses\b/gi, 'Pelanggaran Aturan Anti-Pencucian Uang')
+    .replace(/\boutflows\b/gi, 'Arus Dana Keluar')
+    .replace(/\binflows\b/gi, 'Arus Dana Masuk')
+    .replace(/\brises\b/gi, 'Melonjak')
+    .replace(/\bdrops\b/gi, 'Terkoreksi')
+    .replace(/\bhits record\b/gi, 'Capai Rekor Baru')
+    .replace(/\bLive updates:\b/gi, 'Kabar Terkini:')
+    .trim();
 }

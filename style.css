@@ -1,6 +1,7 @@
 /* ============================================
    CRYPTO SENTIMENT PULSE — Design System
    Aesthetic: FinTech Terminal / Minimalist Utility
+   (Linear.app + DefiLlama + Bloomberg Terminal)
    ============================================ */
 
 /* --- Reset & Base --- */
@@ -13,32 +14,47 @@
 }
 
 :root {
-  /* Surface */
+  /* Surfaces */
   --bg-primary: #0A0B0E;
   --bg-card: #12141A;
   --bg-elevated: #181B23;
   --border-default: #1E222D;
   --border-hover: #374151;
 
-  /* Text */
+  /* Typography Colors */
   --text-primary: #F3F4F6;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
 
-  /* Sentiment — Bullish */
+  /* Sentiment Colors */
   --bull-text: #10B981;
-  --bull-bg: #10B98115;
-  --bull-border: #10B98135;
+  --bull-bg: rgba(16, 185, 129, 0.10);
+  --bull-border: rgba(16, 185, 129, 0.28);
 
-  /* Sentiment — Bearish */
   --bear-text: #EF4444;
-  --bear-bg: #EF444415;
-  --bear-border: #EF444435;
+  --bear-bg: rgba(239, 68, 68, 0.10);
+  --bear-border: rgba(239, 68, 68, 0.28);
 
-  /* Sentiment — Neutral */
-  --neut-text: #64748B;
-  --neut-bg: #64748B15;
-  --neut-border: #64748B35;
+  --neut-text: #94A3B8;
+  --neut-bg: rgba(148, 163, 184, 0.10);
+  --neut-border: rgba(148, 163, 184, 0.24);
+
+  /* Coin Identity Colors */
+  --coin-btc-text: #F7931A;
+  --coin-btc-bg: rgba(247, 147, 26, 0.12);
+  --coin-btc-border: rgba(247, 147, 26, 0.32);
+
+  --coin-eth-text: #627EEA;
+  --coin-eth-bg: rgba(98, 126, 234, 0.12);
+  --coin-eth-border: rgba(98, 126, 234, 0.32);
+
+  --coin-sol-text: #14F195;
+  --coin-sol-bg: rgba(153, 69, 255, 0.14);
+  --coin-sol-border: rgba(20, 241, 149, 0.35);
+
+  --coin-gen-text: #94A3B8;
+  --coin-gen-bg: rgba(148, 163, 184, 0.10);
+  --coin-gen-border: rgba(148, 163, 184, 0.22);
 
   /* Spacing */
   --space-xs: 4px;
@@ -53,7 +69,7 @@
   --radius-md: 8px;
   --radius-lg: 12px;
 
-  /* Transition */
+  /* Transitions */
   --ease-default: 0.2s ease;
   --ease-entrance: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -87,7 +103,7 @@ button {
 
 /* --- Layout Shell --- */
 .app-container {
-  max-width: 960px;
+  max-width: 980px;
   margin: 0 auto;
   padding: var(--space-lg) var(--space-md);
 }
@@ -111,7 +127,7 @@ button {
 }
 
 .app-title {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -121,7 +137,7 @@ button {
 .live-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 0.6875rem;
   font-weight: 500;
@@ -141,13 +157,13 @@ button {
 
 @keyframes pulse {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
-  50%      { opacity: 0.55; box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  50%      { opacity: 0.55; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
 }
 
 .btn-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 8px 16px;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -155,7 +171,7 @@ button {
   background-color: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  transition: background-color var(--ease-default), border-color var(--ease-default);
+  transition: background-color var(--ease-default), border-color var(--ease-default), transform 0.15s ease;
 }
 
 .btn-refresh:hover {
@@ -165,6 +181,11 @@ button {
 
 .btn-refresh:active {
   transform: scale(0.97);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-refresh .icon-refresh {
@@ -178,7 +199,131 @@ button {
   transform: rotate(90deg);
 }
 
-/* --- Filter Bar --- */
+/* ============================================
+   MARKET PULSE BAROMETER
+   ============================================ */
+.market-pulse-bar {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pulse-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.pulse-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pulse-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--bull-text);
+  background: var(--bull-bg);
+  border: 1px solid var(--bull-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.market-status-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.pulse-meta-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-default);
+}
+
+/* Segmented Visual Bar */
+.pulse-progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 12px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.progress-segment {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seg-bullish {
+  background-color: var(--bull-text);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.seg-neutral {
+  background-color: var(--neut-text);
+}
+
+.seg-bearish {
+  background-color: var(--bear-text);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* Legend */
+.pulse-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-bullish { background-color: var(--bull-text); box-shadow: 0 0 5px var(--bull-text); }
+.dot-neutral { background-color: var(--neut-text); }
+.dot-bearish { background-color: var(--bear-text); box-shadow: 0 0 5px var(--bear-text); }
+
+.legend-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: 2px;
+}
+
+/* ============================================
+   FILTER BAR
+   ============================================ */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -187,7 +332,10 @@ button {
 }
 
 .filter-btn {
-  padding: 7px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -209,24 +357,32 @@ button {
 }
 
 .filter-btn .ticker {
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  opacity: 0.85;
 }
 
-/* --- Card Grid --- */
+.filter-btn.filter-btc:hover { border-color: var(--coin-btc-border); }
+.filter-btn.filter-eth:hover { border-color: var(--coin-eth-border); }
+.filter-btn.filter-sol:hover { border-color: var(--coin-sol-border); }
+
+/* ============================================
+   CARD GRID & NEWS CARD
+   ============================================ */
 .card-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-md);
 }
 
-/* --- News Card --- */
 .news-card {
   position: relative;
   background-color: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
   transition: transform var(--ease-default), border-color var(--ease-default), box-shadow var(--ease-default);
   animation: fadeInUp var(--ease-entrance) both;
 }
@@ -234,7 +390,7 @@ button {
 .news-card:hover {
   transform: translateY(-3px);
   border-color: var(--border-hover);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 26px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes fadeInUp {
@@ -253,7 +409,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -261,16 +417,25 @@ button {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
-/* --- Badge Base --- */
+.card-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* --- Badge System --- */
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 3px 10px;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   border-radius: 4px;
@@ -279,6 +444,7 @@ button {
   white-space: nowrap;
 }
 
+/* Sentiment Badges */
 .badge-bullish {
   color: var(--bull-text);
   background-color: var(--bull-bg);
@@ -297,15 +463,35 @@ button {
   border-color: var(--neut-border);
 }
 
-.badge-coin {
-  color: var(--text-secondary);
-  background-color: var(--bg-elevated);
-  border-color: var(--border-default);
+/* Coin Identity Badges */
+.badge-btc {
+  color: var(--coin-btc-text);
+  background-color: var(--coin-btc-bg);
+  border-color: var(--coin-btc-border);
+}
+
+.badge-eth {
+  color: var(--coin-eth-text);
+  background-color: var(--coin-eth-bg);
+  border-color: var(--coin-eth-border);
+}
+
+.badge-sol {
+  color: var(--coin-sol-text);
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.2), rgba(20, 241, 149, 0.15));
+  border-color: var(--coin-sol-border);
+  box-shadow: 0 0 6px rgba(20, 241, 149, 0.2);
+}
+
+.badge-umum {
+  color: var(--coin-gen-text);
+  background-color: var(--coin-gen-bg);
+  border-color: var(--coin-gen-border);
 }
 
 /* --- Card Content --- */
 .card-title {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.45;
   color: var(--text-primary);
@@ -316,19 +502,65 @@ button {
   font-size: 0.8375rem;
   line-height: 1.65;
   color: var(--text-secondary);
-  margin-bottom: var(--space-md);
+  margin-bottom: 12px;
 }
 
+/* --- Market Impact Box --- */
+.card-impact {
+  background-color: var(--bg-elevated);
+  border-left: 3px solid var(--bull-text);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 8px 12px;
+  margin-bottom: var(--space-md);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-impact.impact-bearish {
+  border-left-color: var(--bear-text);
+}
+
+.card-impact.impact-neutral {
+  border-left-color: var(--neut-text);
+}
+
+.impact-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.impact-text {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* --- Card Footer --- */
 .card-footer {
+  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
+  padding-top: 10px;
+  border-top: 1px solid rgba(30, 34, 45, 0.6);
   flex-wrap: wrap;
 }
 
+.card-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .source-link {
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.6875rem;
   color: var(--text-muted);
   text-decoration: none;
@@ -336,18 +568,18 @@ button {
 }
 
 .source-link:hover {
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 /* --- Copy Button --- */
 .btn-copy {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
   background-color: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: 4px;
@@ -356,7 +588,7 @@ button {
 }
 
 .btn-copy:hover {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-color: var(--border-hover);
 }
 
@@ -368,8 +600,18 @@ button {
 
 @keyframes popScale {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.1); }
+  50%  { transform: scale(1.08); }
   100% { transform: scale(1); }
+}
+
+/* --- Solana Fallback Card Special Accent --- */
+.fallback-sol-card {
+  border-color: rgba(153, 69, 255, 0.35);
+  background: linear-gradient(180deg, #12141A 0%, rgba(20, 241, 149, 0.03) 100%);
+}
+
+.fallback-sol-card:hover {
+  border-color: rgba(20, 241, 149, 0.5);
 }
 
 /* --- Skeleton Loader --- */
@@ -384,7 +626,7 @@ button {
 .skeleton-line {
   height: 12px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #1a1d27 25%, #22262f 50%, #1a1d27 75%);
+  background: linear-gradient(90deg, #1a1d27 25%, #252a36 50%, #1a1d27 75%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease infinite;
 }
@@ -393,7 +635,8 @@ button {
 .skeleton-line.w-60 { width: 60%; }
 .skeleton-line.w-80 { width: 80%; }
 .skeleton-line.w-100 { width: 100%; }
-.skeleton-line.h-badge { height: 22px; width: 70px; border-radius: 4px; }
+.skeleton-line.h-badge { height: 22px; width: 75px; border-radius: 4px; }
+.skeleton-line.h-impact { height: 38px; border-radius: 4px; }
 
 .skeleton-row {
   display: flex;
@@ -410,30 +653,30 @@ button {
   100% { background-position: -200% 0; }
 }
 
-/* --- Error State --- */
-.error-state {
+/* --- Error & Empty State --- */
+.error-state, .empty-state {
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
   color: var(--text-muted);
 }
 
 .error-state .error-icon {
-  font-size: 2rem;
+  font-size: 2.25rem;
   margin-bottom: var(--space-md);
 }
 
 .error-state .error-message {
   font-size: 0.875rem;
   line-height: 1.6;
-  max-width: 420px;
+  max-width: 440px;
   margin: 0 auto var(--space-lg);
 }
 
-.error-state .btn-retry {
+.btn-retry {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
+  padding: 8px 22px;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -444,17 +687,9 @@ button {
   transition: background-color var(--ease-default), border-color var(--ease-default);
 }
 
-.error-state .btn-retry:hover {
+.btn-retry:hover {
   background-color: var(--bg-elevated);
   border-color: var(--border-hover);
-}
-
-/* --- Empty State --- */
-.empty-state {
-  text-align: center;
-  padding: var(--space-2xl) var(--space-lg);
-  color: var(--text-muted);
-  font-size: 0.875rem;
 }
 
 /* --- Footer --- */
@@ -464,11 +699,11 @@ button {
   padding-bottom: var(--space-lg);
   font-size: 0.6875rem;
   color: var(--text-muted);
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.03em;
 }
 
-/* --- Responsive --- */
+/* --- Responsive Layout --- */
 @media (min-width: 640px) {
   .app-container {
     padding: var(--space-xl) var(--space-lg);
@@ -479,17 +714,17 @@ button {
   }
 
   .app-title {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 980px) {
   .app-container {
     padding: var(--space-2xl) var(--space-xl);
   }
 }
 
-/* --- Scrollbar --- */
+/* --- Scrollbar & Selection --- */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -504,7 +739,6 @@ button {
   background: var(--border-hover);
 }
 
-/* --- Selection --- */
 ::selection {
   background-color: rgba(243, 244, 246, 0.15);
   color: var(--text-primary);
