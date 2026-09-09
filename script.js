@@ -7,18 +7,18 @@
 
   // ── State ──
   let newsData = [];
-  let activeFilter = 'Semua';
+  let activeFilter = 'All';
 
-  // Fallback Edukatif Khusus Solana jika belum ada breaking news SOL di feed
+  // Educational Fallback specifically for Solana if no breaking SOL news exists in feed
   const solFallbackItem = {
     id: 'sol-fallback',
-    title: 'Solana Network Pulse: Likuiditas DEX & Ekosistem On-Chain Bertahan Kokoh',
-    summary: 'Meskipun belum ada breaking news eksklusif Solana dalam feed CoinDesk beberapa jam terakhir, metrik on-chain Solana menunjukkan aktivitas DeFi yang solid dengan TVL stabil dan biaya transaksi mikro yang efisien.',
-    impact: 'Menopang ketahanan harga SOL dan menjaga retensi pengembang serta volume harian di ekosistem Solana.',
+    title: 'Solana Network Pulse: DEX Liquidity & On-Chain Ecosystem Hold Strong',
+    summary: 'While breaking news specifically highlighting Solana has been calm on the wire in recent hours, Solana on-chain metrics display solid DeFi activity with stable TVL and micro-transaction efficiency.',
+    impact: 'Supports SOL price resilience while sustaining developer retention and daily trading volume across the ecosystem.',
     sentiment: 'Bullish',
     score: '+75',
     coin: 'SOL',
-    time_ago: 'Insight Ekosistem',
+    time_ago: 'Ecosystem Insight',
     source_url: 'https://defillama.com/chain/Solana'
   };
 
@@ -61,7 +61,7 @@
       <div class="error-state" style="grid-column: 1 / -1">
         <div class="error-icon">⚠</div>
         <p class="error-message">${escapeHTML(message)}</p>
-        <button class="btn-retry" type="button" onclick="location.reload()">Coba Lagi</button>
+        <button class="btn-retry" type="button" onclick="location.reload()">Try Again</button>
       </div>`;
   }
 
@@ -69,7 +69,7 @@
   function renderEmpty() {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column: 1 / -1">
-        Tidak ada berita ditemukan untuk filter ini.
+        No articles found for this filter.
       </div>`;
   }
 
@@ -95,7 +95,7 @@
     if (c === 'BTC') return 'badge-btc';
     if (c === 'ETH') return 'badge-eth';
     if (c === 'SOL') return 'badge-sol';
-    return 'badge-umum';
+    return 'badge-general';
   }
 
   // ── Sentiment Badge Class ──
@@ -132,7 +132,7 @@
 
     const bullPct = Math.round((bullCount / total) * 100);
     const bearPct = Math.round((bearCount / total) * 100);
-    const neutPct = 100 - bullPct - bearPct; // Jaga total pas 100%
+    const neutPct = 100 - bullPct - bearPct; // Keep sum exactly 100%
 
     // Update Bar widths
     if (barBullish) barBullish.style.width = `${bullPct}%`;
@@ -146,23 +146,23 @@
 
     // Update Counts
     if (totalArticlesCount) {
-      totalArticlesCount.textContent = `${total} Berita Dianalisis`;
+      totalArticlesCount.textContent = `${total} Articles Analyzed`;
     }
 
     // Update Summary Status
     if (marketStatusText) {
       if (bullPct >= 50) {
-        marketStatusText.textContent = `Sentimen Pasar: Didominasi Bullish (${bullPct}%) — Optimisme Tinggi`;
+        marketStatusText.textContent = `Market Sentiment: Bullish Dominance (${bullPct}%) — Strong Optimism`;
       } else if (bearPct >= 50) {
-        marketStatusText.textContent = `Sentimen Pasar: Didominasi Bearish (${bearPct}%) — Waspada Tekanan Jual`;
+        marketStatusText.textContent = `Market Sentiment: Bearish Dominance (${bearPct}%) — Caution on Selling Pressure`;
       } else if (neutPct >= 45) {
-        marketStatusText.textContent = `Sentimen Pasar: Konsolidasi Netral (${neutPct}%) — Menunggu Katalis Baru`;
+        marketStatusText.textContent = `Market Sentiment: Neutral Consolidation (${neutPct}%) — Awaiting Catalysts`;
       } else if (bullPct > bearPct) {
-        marketStatusText.textContent = `Sentimen Pasar: Cenderung Bullish (${bullPct}% vs ${bearPct}%) — Momentum Positif`;
+        marketStatusText.textContent = `Market Sentiment: Leaning Bullish (${bullPct}% vs ${bearPct}%) — Positive Momentum`;
       } else if (bearPct > bullPct) {
-        marketStatusText.textContent = `Sentimen Pasar: Cenderung Tertekan (${bearPct}% vs ${bullPct}%) — Volatilitas Meningkat`;
+        marketStatusText.textContent = `Market Sentiment: Leaning Bearish (${bearPct}% vs ${bullPct}%) — Heightened Volatility`;
       } else {
-        marketStatusText.textContent = `Sentimen Pasar: Seimbang — Pergerakan Campuran`;
+        marketStatusText.textContent = `Market Sentiment: Balanced — Mixed Action`;
       }
     }
   }
@@ -171,13 +171,13 @@
   function renderCards() {
     let filtered = [];
 
-    if (activeFilter === 'Semua') {
+    if (activeFilter === 'All') {
       filtered = newsData;
     } else {
       filtered = newsData.filter(item => item.coin === activeFilter);
     }
 
-    // Khusus Solana ($SOL): Jika tidak ditemukan artikel SOL dari feed, tampilkan fallback edukatif
+    // Solana ($SOL) Special Case: If no SOL news found in feed, display educational ecosystem insight
     if (activeFilter === 'SOL' && filtered.length === 0) {
       renderSolanaFallback();
       return;
@@ -192,9 +192,9 @@
     filtered.forEach((item, index) => {
       const badgeCoin = coinBadgeClass(item.coin);
       const badgeSent = sentimentBadgeClass(item.sentiment);
-      const coinLabel = item.coin === 'Umum' ? 'UMUM' : `$${item.coin}`;
+      const coinLabel = (item.coin === 'General' || item.coin === 'Umum') ? 'MARKET' : `$${item.coin}`;
       const scoreLabel = item.score ? `${item.score}` : (item.sentiment === 'Bullish' ? '+70' : (item.sentiment === 'Bearish' ? '-60' : '0'));
-      const timeLabel = item.time_ago || 'Terkini';
+      const timeLabel = item.time_ago || 'Recent';
       const delay = Math.min(index * 0.04, 0.4);
 
       html += `
@@ -211,18 +211,18 @@
           <p class="card-summary">${escapeHTML(item.summary)}</p>
 
           <div class="card-impact ${impactClass(item.sentiment)}">
-            <span class="impact-label">Dampak Pasar ⚡</span>
-            <span class="impact-text">${escapeHTML(item.impact || 'Menjaga dinamika pasar dalam tren saat ini.')}</span>
+            <span class="impact-label">Market Impact ⚡</span>
+            <span class="impact-text">${escapeHTML(item.impact || 'Preserves market dynamics within current trends.')}</span>
           </div>
 
           <div class="card-footer">
             <div class="card-footer-left">
               <a class="source-link" href="${escapeHTML(item.source_url)}" target="_blank" rel="noopener noreferrer">
-                Sumber Berita ↗
+                Source Story ↗
               </a>
             </div>
-            <button class="btn-copy" type="button" data-id="${item.id}" aria-label="Salin analisis berita">
-              Salin Analisis
+            <button class="btn-copy" type="button" data-id="${item.id}" aria-label="Copy news analysis">
+              Copy Analysis
             </button>
           </div>
         </article>`;
@@ -230,13 +230,13 @@
 
     grid.innerHTML = html;
 
-    // Pasang listener copy
+    // Attach copy listeners
     grid.querySelectorAll('.btn-copy').forEach(btn => {
       btn.addEventListener('click', handleCopy);
     });
   }
 
-  // ── Render Fallback Khusus Solana ──
+  // ── Render Solana Fallback ──
   function renderSolanaFallback() {
     grid.innerHTML = `
       <article class="news-card fallback-sol-card" style="animation-delay: 0.05s; grid-column: 1 / -1;">
@@ -245,25 +245,25 @@
             <span class="badge badge-sol">$SOL</span>
             <span class="badge badge-bullish">+75 Bullish</span>
           </div>
-          <span class="card-time">Insight Ekosistem</span>
+          <span class="card-time">Ecosystem Insight</span>
         </div>
 
         <h2 class="card-title">${escapeHTML(solFallbackItem.title)}</h2>
         <p class="card-summary">${escapeHTML(solFallbackItem.summary)}</p>
 
         <div class="card-impact impact-bullish">
-          <span class="impact-label">Dampak Pasar ⚡</span>
+          <span class="impact-label">Market Impact ⚡</span>
           <span class="impact-text">${escapeHTML(solFallbackItem.impact)}</span>
         </div>
 
         <div class="card-footer">
           <div class="card-footer-left">
             <a class="source-link" href="${solFallbackItem.source_url}" target="_blank" rel="noopener noreferrer">
-              Cek On-Chain DeFiLlama ↗
+              Check On-Chain DeFiLlama ↗
             </a>
           </div>
-          <button class="btn-copy" type="button" data-id="sol-fallback" aria-label="Salin insight Solana">
-            Salin Analisis
+          <button class="btn-copy" type="button" data-id="sol-fallback" aria-label="Copy Solana insight">
+            Copy Analysis
           </button>
         </div>
       </article>`;
@@ -289,14 +289,14 @@
 
     if (!targetItem) return;
 
-    // Format salinan lengkap & informatif
+    // Formatted copy snippet
     const copyContent = decodeHTML(
       `[CRYPTO SENTIMENT PULSE]\n` +
-      `${targetItem.coin !== 'Umum' ? '$' + targetItem.coin : 'PASAR UMUM'} | Sentimen: ${targetItem.sentiment} (${targetItem.score})\n` +
-      `Judul: ${targetItem.title}\n\n` +
-      `Ringkasan: ${targetItem.summary}\n` +
-      `Dampak Pasar: ${targetItem.impact}\n` +
-      `Sumber: ${targetItem.source_url}`
+      `${(targetItem.coin !== 'General' && targetItem.coin !== 'Umum') ? '$' + targetItem.coin : 'BROAD MARKET'} | Sentiment: ${targetItem.sentiment} (${targetItem.score})\n` +
+      `Headline: ${targetItem.title}\n\n` +
+      `Summary: ${targetItem.summary}\n` +
+      `Market Impact: ${targetItem.impact}\n` +
+      `Source: ${targetItem.source_url}`
     );
 
     try {
@@ -313,11 +313,11 @@
         document.body.removeChild(ta);
       }
 
-      btn.textContent = 'Tersalin! ✓';
+      btn.textContent = 'Copied! ✓';
       btn.classList.add('copied');
 
       setTimeout(() => {
-        btn.textContent = 'Salin Analisis';
+        btn.textContent = 'Copy Analysis';
         btn.classList.remove('copied');
       }, 1500);
     } catch (err) {
@@ -339,7 +339,7 @@
       }
 
       if (!Array.isArray(data) || data.length === 0) {
-        throw new Error('Data berita kosong atau tidak dapat dimuat.');
+        throw new Error('Empty news response or failed to load.');
       }
 
       newsData = data;
@@ -347,7 +347,7 @@
       renderCards();
     } catch (err) {
       console.error('[Fetch Error]', err);
-      renderError(err.message || 'Gagal memuat feed analisis crypto.');
+      renderError(err.message || 'Failed to load crypto sentiment feed.');
     } finally {
       btnRefresh.disabled = false;
     }
@@ -366,7 +366,7 @@
 
   // ── Refresh Button ──
   btnRefresh.addEventListener('click', () => {
-    activeFilter = 'Semua';
+    activeFilter = 'All';
     filterBtns.forEach(b => b.classList.remove('active'));
     filterBtns[0].classList.add('active');
     fetchData();

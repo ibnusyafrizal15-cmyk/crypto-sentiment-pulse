@@ -483,7 +483,8 @@ button {
   box-shadow: 0 0 6px rgba(20, 241, 149, 0.2);
 }
 
-.badge-umum {
+.badge-umum,
+.badge-general {
   color: var(--coin-gen-text);
   background-color: var(--coin-gen-bg);
   border-color: var(--coin-gen-border);

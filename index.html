@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crypto Sentiment Pulse — Analisis Sentimen Berita Crypto Real-Time</title>
-  <meta name="description" content="Dashboard analisis sentimen berita cryptocurrency secara real-time menggunakan AI. Pantau sentimen pasar Bitcoin, Ethereum, dan Solana dari sumber berita terpercaya." />
+  <title>Crypto Sentiment Pulse — Real-Time Crypto News Sentiment Analysis</title>
+  <meta name="description" content="Real-time cryptocurrency news sentiment analysis dashboard powered by AI. Monitor market sentiment for Bitcoin, Ethereum, and Solana from trusted news sources." />
   <meta name="theme-color" content="#0A0B0E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,7 @@
         <h1 class="app-title">Crypto Sentiment Pulse</h1>
         <span class="live-indicator">
           <span class="pulse-dot" aria-hidden="true"></span>
-          Live Feed: CoinDesk (25 Berita)
+          Live Feed: CoinDesk (25 Articles)
         </span>
       </div>
       <button id="btn-refresh" class="btn-refresh" type="button" aria-label="Refresh feed">
@@ -34,19 +34,19 @@
     </header>
 
     <!-- Market Pulse Barometer -->
-    <section id="market-pulse-bar" class="market-pulse-bar" aria-label="Barometer Sentimen Pasar">
+    <section id="market-pulse-bar" class="market-pulse-bar" aria-label="Market Sentiment Barometer">
       <div class="pulse-bar-header">
         <div class="pulse-status-wrap">
-          <span class="pulse-eyebrow">BAROMETER PASAR</span>
-          <span id="market-status-text" class="market-status-text">Memuat analisis sentimen...</span>
+          <span class="pulse-eyebrow">MARKET BAROMETER</span>
+          <span id="market-status-text" class="market-status-text">Loading sentiment analysis...</span>
         </div>
         <div class="pulse-meta-badge">
-          <span id="total-articles-count" class="meta-count">0 Berita Dianalisis</span>
+          <span id="total-articles-count" class="meta-count">0 Articles Analyzed</span>
         </div>
       </div>
 
       <!-- Segmented Visual Bar -->
-      <div class="pulse-progress-track" role="progressbar" aria-label="Rasio Sentimen Pasar">
+      <div class="pulse-progress-track" role="progressbar" aria-label="Market Sentiment Ratio">
         <div id="bar-bullish" class="progress-segment seg-bullish" style="width: 33.3%"></div>
         <div id="bar-neutral" class="progress-segment seg-neutral" style="width: 33.3%"></div>
         <div id="bar-bearish" class="progress-segment seg-bearish" style="width: 33.4%"></div>
@@ -73,8 +73,8 @@
     </section>
 
     <!-- Filter Bar -->
-    <nav class="filter-bar" aria-label="Filter berita berdasarkan koin">
-      <button class="filter-btn active" data-filter="Semua" type="button">Semua</button>
+    <nav class="filter-bar" aria-label="Filter news by coin">
+      <button class="filter-btn active" data-filter="All" type="button">All</button>
       <button class="filter-btn filter-btc" data-filter="BTC" type="button">Bitcoin <span class="ticker">$BTC</span></button>
       <button class="filter-btn filter-eth" data-filter="ETH" type="button">Ethereum <span class="ticker">$ETH</span></button>
       <button class="filter-btn filter-sol" data-filter="SOL" type="button">Solana <span class="ticker">$SOL</span></button>
