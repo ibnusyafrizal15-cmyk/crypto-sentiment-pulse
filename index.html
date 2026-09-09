@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Sentiment Pulse — Analisis Sentimen Berita Crypto Real-Time</title>
+  <meta name="description" content="Dashboard analisis sentimen berita cryptocurrency secara real-time menggunakan AI. Pantau sentimen pasar Bitcoin, Ethereum, dan Solana dari sumber berita terpercaya." />
+  <meta name="theme-color" content="#0A0B0E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title">Crypto Sentiment Pulse</h1>
+        <span class="live-indicator">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          Live Feed: CoinDesk
+        </span>
+      </div>
+      <button id="btn-refresh" class="btn-refresh" type="button" aria-label="Refresh feed">
+        <svg class="icon-refresh" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1.5 8a6.5 6.5 0 0 1 11.3-4.4M14.5 8a6.5 6.5 0 0 1-11.3 4.4"/>
+          <polyline points="1.5 3.5 1.5 7 5 7"/>
+          <polyline points="14.5 12.5 14.5 9 11 9"/>
+        </svg>
+        Refresh
+      </button>
+    </header>
+
+    <!-- Filter Bar -->
+    <nav class="filter-bar" aria-label="Filter berita berdasarkan koin">
+      <button class="filter-btn active" data-filter="Semua" type="button">Semua</button>
+      <button class="filter-btn" data-filter="BTC" type="button">Bitcoin <span class="ticker">$BTC</span></button>
+      <button class="filter-btn" data-filter="ETH" type="button">Ethereum <span class="ticker">$ETH</span></button>
+      <button class="filter-btn" data-filter="SOL" type="button">Solana <span class="ticker">$SOL</span></button>
+    </nav>
+
+    <!-- Card Grid -->
+    <main id="card-grid" class="card-grid" aria-live="polite">
+      <!-- Cards injected by script.js -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      Crypto Sentiment Pulse &middot; Powered by Gemini AI &amp; CoinDesk RSS
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
